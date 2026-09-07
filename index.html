@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050505">
+<link rel="manifest" href="manifest.json">
+<title>GPT Batsho</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#050505;color:#f5f5f5;font-family:Inter,system-ui,Arial,sans-serif}
+.app{max-width:520px;margin:auto;min-height:100vh;background:#070707;padding-bottom:82px}
+header{padding:22px 18px 12px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #191919}
+.logo{width:42px;height:42px;border:1px solid #777;border-radius:50%;display:grid;place-items:center;font-size:25px;background:#111}
+h1{font-size:21px;margin:0}.sub{color:#8f8f8f;font-size:12px;margin-top:2px}
+.bell{margin-left:auto;background:#111;border:1px solid #333;color:white;border-radius:12px;padding:10px}
+main{padding:16px}.hero{border:1px solid #222;border-radius:18px;padding:18px;background:linear-gradient(145deg,#111,#080808)}
+.hero h2{margin:0 0 5px;font-size:25px}.hero p{color:#999;margin:0 0 15px}
+.btn{width:100%;padding:14px;border-radius:13px;border:1px solid #777;background:#eee;color:#050505;font-weight:800;font-size:15px}
+.btn.dark{background:#101010;color:white;border-color:#333}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:14px 0}
+.card{background:#101010;border:1px solid #222;border-radius:14px;padding:12px}.label{font-size:11px;color:#888}.value{font-size:18px;font-weight:800;margin-top:4px}
+h3{font-size:16px;margin:20px 0 10px}.signal{background:#0d0d0d;border:1px solid #252525;border-radius:15px;padding:14px;margin:9px 0;position:relative}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}.pair{font-size:17px;font-weight:800}.tag{font-size:11px;border:1px solid #444;border-radius:20px;padding:5px 8px}.buy{color:#d7ffd7;border-color:#235d2f}.sell{color:#ffd7d7;border-color:#5d2323}
+.muted{color:#888;font-size:12px}.ready{margin-top:9px;font-weight:800}.meter{height:6px;background:#222;border-radius:10px;overflow:hidden;margin-top:8px}.meter i{display:block;height:100%;background:#eee}.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(520px,100%);background:#0b0b0b;border-top:1px solid #222;display:flex;justify-content:space-around;padding:10px 4px}.nav button{background:none;border:0;color:#777;font-size:11px}.nav button.active{color:#fff}.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#eee;color:#050505;padding:12px 16px;border-radius:12px;font-weight:800;display:none;z-index:5}
+.small{font-size:12px;color:#777;line-height:1.5}.section-note{color:#777;font-size:11px;margin:8px 2px}
+.selector{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.selector button{padding:12px;border-radius:12px;background:#0d0d0d;color:#888;border:1px solid #292929;font-weight:800}
+.selector button.active{background:#eee;color:#050505;border-color:#eee}
+.tfbar{display:flex;gap:7px;overflow-x:auto;padding:2px 0 8px;scrollbar-width:none}.tfbar::-webkit-scrollbar{display:none}
+.tf{flex:0 0 auto;padding:8px 12px;border-radius:20px;background:#101010;color:#888;border:1px solid #292929;font-weight:700;font-size:11px}
+.tf.active{color:#050505;background:#eee;border-color:#eee}
+.best{border:1px solid #555;background:#111;border-radius:14px;padding:12px;margin-bottom:10px}
+.best strong{font-size:13px}.best .why{color:#aaa;font-size:11px;margin-top:4px}
+.fib{background:#0d0d0d;border:1px solid #252525;border-radius:15px;padding:14px;margin:9px 0}
+.levels{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}
+.level{background:#111;border:1px solid #292929;border-radius:10px;padding:8px;text-align:center}.level b{display:block;font-size:12px}.level span{color:#888;font-size:10px}
+
+#gbLive{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:20;align-items:flex-end;justify-content:center}
+.gb-live-panel{width:min(520px,100%);max-height:88vh;overflow:auto;background:#0d0d0d;border:1px solid #333;border-radius:22px 22px 0 0;padding:18px}
+.gb-live-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.gb-live-title{font-weight:900;font-size:18px}
+.gb-input{width:100%;padding:13px;border-radius:12px;border:1px solid #333;background:#080808;color:#fff;margin:6px 0 10px}
+.gb-live-status{padding:12px;border-radius:12px;background:#111;border:1px solid #292929;font-size:12px;margin:10px 0}
+.gb-live-status.ok{border-color:#2d6b3c}
+.gb-live-status.warn{border-color:#6b5a2d}
+.gb-live-pairs{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0 12px}
+.gb-live-pairs button{padding:8px 10px;border-radius:18px;border:1px solid #333;background:#111;color:#aaa}
+.gb-live-pairs button.active{background:#eee;color:#050505}
+.gb-live-row{display:flex;gap:8px}.gb-live-row>*{flex:1}
+.gb-live-note{font-size:11px;color:#777;line-height:1.5}
+.gb-live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#777;margin-right:6px}
+.gb-live-dot.on{background:#22c55e}
+
+.gb-trial-banner{margin:10px 0;padding:12px 14px;border:1px solid #333;border-radius:14px;background:#101010;font-size:12px}
+.gb-trial-banner strong{display:block;font-size:14px;margin-bottom:3px}
+.gb-trial-expired{position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.gb-trial-card{width:min(430px,100%);background:#101010;border:1px solid #444;border-radius:22px;padding:24px;text-align:center}
+.gb-trial-card h2{margin:0 0 8px}.gb-trial-card p{color:#aaa;font-size:13px;line-height:1.5}
+</style>
+
+<style id="gptBatshoThemeStyles">
+:root{
+ --gb-bg:#050505;--gb-surface:#111;--gb-surface2:#171717;--gb-text:#fff;
+ --gb-muted:#999;--gb-border:#292929;--gb-accent:#fff;--gb-accentText:#000;
+}
+body.gb-light{
+ --gb-bg:#f5f5f5;--gb-surface:#fff;--gb-surface2:#f0f0f0;--gb-text:#111;
+ --gb-muted:#666;--gb-border:#ddd;--gb-accent:#111;--gb-accentText:#fff;
+}
+body.gb-light #accessGate,body.gb-light #agreementGate{background:#f5f5f5;color:#111}
+body.gb-light .gate-card{background:#fff;border-color:#ddd;box-shadow:0 20px 70px rgba(0,0,0,.12)}
+body.gb-light .gate-sub{color:#666}
+body.gb-light .gate-input{background:#fafafa;color:#111;border-color:#ccc}
+body.gb-light .gate-btn{background:#111;color:#fff}
+body.gb-light .policy{background:#f7f7f7;border-color:#ddd;color:#444}
+body.gb-light .policy h3,body.gb-light .policy h4{color:#111}
+body.gb-light .agree-row{color:#333}
+
+#gbSettings{
+ position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,.62);
+ display:none;align-items:flex-end;justify-content:center;
+ font-family:system-ui,-apple-system,Segoe UI,sans-serif;
+}
+.gb-panel{
+ width:min(520px,100%);background:var(--gb-surface);color:var(--gb-text);
+ border:1px solid var(--gb-border);border-bottom:0;border-radius:24px 24px 0 0;
+ padding:22px;box-sizing:border-box;box-shadow:0 -20px 70px rgba(0,0,0,.35);
+}
+.gb-panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.gb-panel-title{font-size:22px;font-weight:800}
+.gb-close{background:var(--gb-surface2);color:var(--gb-text);border:1px solid var(--gb-border);border-radius:10px;padding:8px 11px}
+.gb-section{margin-top:18px}
+.gb-label{font-size:13px;color:var(--gb-muted);margin-bottom:9px}
+.gb-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gb-choice{
+ border:1px solid var(--gb-border);background:var(--gb-surface2);color:var(--gb-text);
+ border-radius:13px;padding:13px;text-align:center;font-weight:700
+}
+.gb-choice.active{outline:2px solid var(--gb-accent);border-color:var(--gb-accent)}
+.gb-colors{display:flex;gap:12px;flex-wrap:wrap}
+.gb-color{
+ width:34px;height:34px;border-radius:50%;border:2px solid var(--gb-border);
+ padding:0;background:var(--c);position:relative
+}
+.gb-color.active{outline:3px solid var(--gb-text);outline-offset:2px}
+.gb-reset{width:100%;margin-top:20px;padding:13px;border-radius:12px;border:1px solid var(--gb-border);
+ background:var(--gb-surface2);color:var(--gb-text);font-weight:700}
+</style>
+
+<style>
+.nav button{cursor:pointer;min-width:54px;padding:4px 2px}
+.nav button.active{color:var(--gb-accent,#fff)}
+.view-section{display:none}
+.view-section.active{display:block}
+.journal-item,.stat-box{border:1px solid var(--gb-border,#222);background:var(--gb-card,#111);border-radius:14px;padding:14px;margin-bottom:10px}
+.journal-form{display:grid;gap:9px}
+.journal-form input,.journal-form select,.journal-form textarea{width:100%;box-sizing:border-box;background:#0b0b0b;color:#fff;border:1px solid #292929;border-radius:10px;padding:11px}
+.gb-light .journal-form input,.gb-light .journal-form select,.gb-light .journal-form textarea{background:#fff;color:#111;border-color:#ccc}
+.journal-actions{display:flex;gap:8px}
+.journal-actions .btn{flex:1}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat-box .value{font-size:22px;font-weight:900;margin-top:4px}
+.empty{padding:20px;text-align:center;color:#888;border:1px dashed #333;border-radius:14px}
+</style>
+</head>
+<body><div id="gbTrialBanner" class="gb-trial-banner"><strong>🕐 7-Day Free Trial</strong><span id="gbTrialText">Checking trial status…</span></div>
+<style>
+#accessGate,#agreementGate{
+ position:fixed;inset:0;z-index:99999;background:#050505;color:#fff;
+ display:flex;align-items:center;justify-content:center;padding:22px;
+ font-family:system-ui,-apple-system,Segoe UI,sans-serif;
+}
+.gate-card{width:min(460px,100%);background:#111;border:1px solid #2b2b2b;border-radius:22px;padding:28px;box-shadow:0 20px 70px #000}
+.gate-logo{font-size:48px;text-align:center;margin-bottom:8px}
+.gate-title{text-align:center;font-size:28px;font-weight:800;margin:0 0 6px}
+.gate-sub{text-align:center;color:#aaa;font-size:14px;margin-bottom:22px}
+.gate-input{width:100%;box-sizing:border-box;background:#080808;color:#fff;border:1px solid #333;border-radius:12px;padding:14px;font-size:18px;outline:none}
+.gate-btn{width:100%;margin-top:12px;padding:14px;border:0;border-radius:12px;background:#fff;color:#000;font-weight:800;font-size:16px}
+.gate-link{display:block;text-align:center;margin-top:14px;color:#fff;text-decoration:none;font-size:14px}
+.gate-msg{text-align:center;color:#ff7777;font-size:13px;min-height:18px;margin-top:10px}
+.policy{max-height:45vh;overflow:auto;background:#0a0a0a;border:1px solid #292929;border-radius:14px;padding:16px;color:#cfcfcf;font-size:13px;line-height:1.55}
+.policy h3{color:#fff;margin:0 0 8px}.policy h4{color:#fff;margin:14px 0 5px}
+.agree-row{display:flex;gap:10px;align-items:flex-start;margin:14px 0;color:#ddd;font-size:13px}
+.agree-row input{margin-top:3px;width:18px;height:18px}
+#agreeBtn:disabled{opacity:.4;cursor:not-allowed}
+.small-note{text-align:center;color:#777;font-size:11px;margin-top:12px}
+</style>
+
+<div id="accessGate">
+  <div class="gate-card">
+    <div class="gate-logo">🐐</div>
+    <h1 class="gate-title">GPT Batsho</h1>
+    <div class="gate-sub">Enter your access code to continue</div>
+    <input id="accessInput" class="gate-input" type="password" inputmode="numeric" placeholder="Access code">
+    <button class="gate-btn" onclick="unlockAccess()">Unlock GPT Batsho</button>
+    <div id="accessMsg" class="gate-msg"></div>
+    <a class="gate-link" href="https://wa.me/26775143421" target="_blank">pls contact 75143421 on WhatsApp to get code of access</a>
+  </div>
+</div>
+
+<div id="agreementGate" style="display:none">
+  <div class="gate-card">
+    <div class="gate-logo">🐐</div>
+    <h1 class="gate-title">Before you enter</h1>
+    <div class="gate-sub">Please read and accept the GPT Batsho User Agreement & Policy.</div>
+    <div class="policy">
+      <h3>GPT Batsho User Agreement & Policy</h3>
+      <h4>1. Educational use</h4>
+      <p>GPT Batsho is an educational trading-analysis tool. Its setup scores, alerts and market analysis are informational and are not a guarantee of profit or a recommendation to buy or sell.</p>
+      <h4>2. Trading risk</h4>
+      <p>Trading foreign exchange and other financial markets involves substantial risk, including the possible loss of money. You are responsible for your own trading decisions, risk management and account.</p>
+      <h4>3. No guaranteed results</h4>
+      <p>No setup, score, probability or alert can guarantee a winning trade. Past performance does not guarantee future results.</p>
+      <h4>4. Market data & alerts</h4>
+      <p>Signal information may be delayed, incomplete or inaccurate depending on the data source. Always verify market conditions before acting on any analysis.</p>
+      <h4>5. Responsible use</h4>
+      <p>Do not risk money you cannot afford to lose. Consider using appropriate position sizing, stop-losses and independent research.</p>
+      <h4>6. Access & security</h4>
+      <p>Access codes are intended for authorized users. Do not share access credentials publicly or attempt to bypass the app's access controls.</p>
+      <h4>7. Acceptance</h4>
+      <p>By selecting “I agree” and continuing, you confirm that you have read and understood this agreement and accept these terms for using GPT Batsho.</p>
+    </div>
+    <label class="agree-row">
+      <input id="agreeCheck" type="checkbox" onchange="document.getElementById('agreeBtn').disabled=!this.checked">
+      <span>I have read and agree to the GPT Batsho User Agreement & Policy.</span>
+    </label>
+    <button id="agreeBtn" class="gate-btn" disabled onclick="acceptAgreement()">I Agree & Continue</button>
+    <div class="small-note">You can review this agreement before using the scanner and alerts.</div>
+  </div>
+</div>
+
+<script>
+/* GPT Batsho — 7-day free trial */
+const GB_TRIAL_DAYS=7;
+const GB_TRIAL_KEY="gbTrialStartedAt";
+const GB_TRIAL_EXPIRED="gbTrialExpired";
+function gbStartTrial(){
+  let started=localStorage.getItem(GB_TRIAL_KEY);
+  if(!started){
+    started=String(Date.now());
+    localStorage.setItem(GB_TRIAL_KEY,started);
+  }
+  return Number(started);
+}
+function gbTrialState(){
+  const start=gbStartTrial();
+  const elapsed=Date.now()-start;
+  const leftMs=(GB_TRIAL_DAYS*24*60*60*1000)-elapsed;
+  return {start,leftMs,expired:leftMs<=0};
+}
+function updateGbTrialUI(){
+  if(localStorage.getItem("gbAccessGranted")==="1"){
+    const banner=document.getElementById("gbTrialBanner");
+    if(banner) banner.innerHTML="<strong>🔑 Access granted</strong><span>GPT Batsho access is active.</span>";
+    return;
+  }
+  const st=gbTrialState();
+  const banner=document.getElementById("gbTrialBanner");
+  const text=document.getElementById("gbTrialText");
+  if(!banner||!text)return;
+  if(st.expired){
+    text.textContent="Trial expired.";
+    document.getElementById("gbTrialExpired").style.display="flex";
+    document.body.style.overflow="hidden";
+    return;
+  }
+  const hours=Math.max(1,Math.ceil(st.leftMs/3600000));
+  const days=Math.ceil(hours/24);
+  text.textContent=days===1 ? "Less than 24 hours remaining." : `${days} days remaining.`;
+}
+
+function showGbAccessCode(){
+ const box=document.getElementById("gbAccessCodeBox");
+ if(box) box.style.display="block";
+}
+function unlockGbAccess(){
+ const code=(document.getElementById("gbAccessCode")?.value||"").trim();
+ if(code==="20071003"){
+   localStorage.setItem("gbAccessGranted","1");
+   document.getElementById("gbTrialExpired").style.display="none";
+   document.body.style.overflow="";
+   const banner=document.getElementById("gbTrialBanner");
+   if(banner) banner.innerHTML="<strong>🔑 Access granted</strong><span>GPT Batsho access is active.</span>";
+   toast("🐐 Access granted");
+ }else{
+   toast("Incorrect access code");
+ }
+}
+function contactGbAccess(){
+  window.open("https://wa.me/26775143421","_blank");
+}
+updateGbTrialUI();
+setInterval(updateGbTrialUI,60000);
+
+const ACCESS_CODE="20071003";
+
+function showAgreement(){
+  document.getElementById("accessGate").style.display="none";
+  document.getElementById("agreementGate").style.display="flex";
+}
+function unlockAccess(){
+  const v=document.getElementById("accessInput").value.trim();
+  const msg=document.getElementById("accessMsg");
+  if(v===ACCESS_CODE){
+    sessionStorage.setItem("gptBatshoCodeVerified","1");
+    msg.textContent="";
+    showAgreement();
+  }else{
+    msg.textContent="Incorrect access code. Please contact 75143421 on WhatsApp.";
+  }
+}
+function acceptAgreement(){
+  sessionStorage.setItem("gptBatshoAgreementAccepted","1");
+  document.getElementById("agreementGate").style.display="none";
+}
+window.addEventListener("DOMContentLoaded",()=>{
+  const codeOK=sessionStorage.getItem("gptBatshoCodeVerified")==="1";
+  const agreementOK=sessionStorage.getItem("gptBatshoAgreementAccepted")==="1";
+  if(codeOK && agreementOK){
+    document.getElementById("accessGate").style.display="none";
+    document.getElementById("agreementGate").style.display="none";
+  }else if(codeOK){
+    showAgreement();
+  }
+});
+</script>
+
+<div class="toast" id="toast">🐐 GPT Batsho</div>
+<div class="app">
+<header><div class="logo">🐐</div><div><h1>GPT Batsho</h1><div class="sub">TRADE • ANALYZE • PROFIT</div></div><button class="bell" onclick="enableAlerts()">🔔</button></header>
+<main id="mainContent">
+<section id="homeView" class="view-section active"><section class="hero">
+<h2>Find the strongest setup.</h2>
+<p>Scan every supported timeframe and rank the strongest opportunity instead of forcing a trade.</p>
+<div class="selector">
+<button id="classicBtn" class="active" onclick="setStrategy('classic')">🐐 GPT Batsho Setups</button>
+<button id="fibBtn" onclick="setStrategy('fib')">📐 Fibonacci Confluence</button>
+</div>
+<button class="btn" onclick="scan()">🎯 Scan All Timeframes</button>
+</section>
+
+<div class="grid">
+<div class="card"><div class="label">ALERTS</div><div class="value" id="alerts">0</div></div>
+<div class="card"><div class="label">BEST TF</div><div class="value" id="bestTf">—</div></div>
+<div class="card"><div class="label">MODE</div><div class="value">DEMO</div></div>
+</div>
+
+<h3>Timeframes</h3>
+<div class="tfbar" id="tfbar"></div>
+<div class="section-note">Auto mode checks all timeframes. Selecting a timeframe filters the ranking.</div>
+
+<h3>Best opportunity</h3>
+<div id="best"></div>
+
+<h3>Ranked setups</h3>
+<div id="signals"></div>
+
+<h3>Strategy rules</h3>
+<div id="rules"></div>
+
+<p class="small">⚠️ Demo scanner: market prices are simulated in this build. The ranking is a strategy score, not a guaranteed probability or win rate. A live version needs real-time candle data and a broker/market-data connection.</p></section>
+
+<section id="scannerView" class="view-section">
+  <h2>🔎 Scanner</h2>
+  <p class="muted">Rank the strongest available demo setup across every timeframe.</p>
+  <button class="btn" onclick="scan()">🎯 Run full scan</button>
+  <div style="height:12px"></div>
+  <div id="scannerResults"></div>
+</section>
+
+<section id="journalView" class="view-section">
+  <h2>📓 Trade Journal</h2>
+  <p class="muted">Save your setups and review your decisions. Entries are stored on this device.</p>
+  <div class="journal-form">
+    <input id="jPair" placeholder="Pair e.g. EURUSD">
+    <select id="jDirection"><option>BUY</option><option>SELL</option></select>
+    <input id="jEntry" placeholder="Entry price">
+    <input id="jResult" placeholder="Result e.g. +2R, -1R, BE">
+    <textarea id="jNote" rows="3" placeholder="Notes / reason for the trade"></textarea>
+    <button class="btn" onclick="addJournal()">＋ Save journal entry</button>
+  </div>
+  <div style="height:14px"></div>
+  <div id="journalList"></div>
+</section>
+
+<section id="statsView" class="view-section">
+  <h2>📊 Stats</h2>
+  <p class="muted">Your local journal performance summary.</p>
+  <div id="statsContent"></div>
+</section>
+</main>
+<nav class="nav">
+<button id="navHome" class="active" onclick="showView('home')">⌂<br>Home</button>
+<button id="navScanner" onclick="showView('scanner')">⌕<br>Scanner</button>
+<button id="navJournal" onclick="showView('journal')">▤<br>Journal</button>
+<button id="navStats" onclick="showView('stats')">▥<br>Stats</button>
+<button id="navSettings" onclick="openGbSettings()">⚙<br>Settings</button>
+</nav>
+</div>
+
+<script>
+const timeframes=["1m","5m","15m","30m","1H","4H","1D","1W","1M"];
+const classic=[
+{pair:"EURUSD",dir:"BUY",setup:"Breakout + Retest",tf:"4H",score:92,entry:"1.0975",sl:"1.0948",tp:"1.1030",reason:"Clean breakout, successful retest and strong structure alignment."},
+{pair:"GBPJPY",dir:"SELL",setup:"Liquidity Sweep + Reversal",tf:"1H",score:88,entry:"189.32",sl:"190.05",tp:"187.85",reason:"Previous high swept, rejection confirmed, downside liquidity nearby."},
+{pair:"AUDUSD",dir:"BUY",setup:"Trend Pullback + Structure",tf:"4H",score:84,entry:"0.6720",sl:"0.6688",tp:"0.6785",reason:"Higher-high/higher-low structure with pullback confirmation."},
+{pair:"USDJPY",dir:"BUY",setup:"Breakout + Retest",tf:"15m",score:81,entry:"148.62",sl:"148.38",tp:"149.10",reason:"Intraday structure break with retest confirmation."},
+{pair:"XAUUSD",dir:"SELL",setup:"Liquidity Sweep + Reversal",tf:"1D",score:79,entry:"2508.5",sl:"2522.0",tp:"2475.0",reason:"Daily liquidity sweep with bearish rejection."},
+{pair:"GBPUSD",dir:"BUY",setup:"Trend Pullback + Structure",tf:"5m",score:76,entry:"1.2752",sl:"1.2738",tp:"1.2780",reason:"Short-term trend continuation after pullback."}
+];
+const fib=[
+{pair:"EURUSD",dir:"BUY",setup:"Fib 61.8% Confluence",tf:"4H",score:94,entry:"1.0968",sl:"1.0939",tp:"1.1030",reason:"61.8% retracement + structure support + bullish confirmation."},
+{pair:"GBPJPY",dir:"SELL",setup:"Fib 61.8% Confluence",tf:"1H",score:90,entry:"189.40",sl:"190.12",tp:"187.90",reason:"61.8% retracement + prior resistance + rejection."},
+{pair:"XAUUSD",dir:"BUY",setup:"Fib 50%/61.8% Zone",tf:"1D",score:86,entry:"2484.0",sl:"2460.0",tp:"2532.0",reason:"Golden-zone reaction aligned with higher-timeframe structure."},
+{pair:"AUDUSD",dir:"BUY",setup:"Fib 61.8% Confluence",tf:"4H",score:83,entry:"0.6712",sl:"0.6680",tp:"0.6778",reason:"Retracement into 61.8% with trend continuation confirmation."},
+{pair:"USDJPY",dir:"SELL",setup:"Fib 78.6% Rejection",tf:"15m",score:78,entry:"148.90",sl:"149.15",tp:"148.35",reason:"Deep retracement rejected at prior supply."}
+];
+let mode="classic", selectedTF="ALL", count=0;
+
+function setStrategy(m){
+ mode=m;
+ document.getElementById("classicBtn").classList.toggle("active",m==="classic");
+ document.getElementById("fibBtn").classList.toggle("active",m==="fib");
+ render();
+ toast(m==="fib"?"📐 Fibonacci Confluence selected":"🐐 GPT Batsho setups selected");
+}
+function renderTFs(){
+ document.getElementById("tfbar").innerHTML='<button class="tf '+(selectedTF==="ALL"?"active":"")+'" onclick="selectTF(\'ALL\')">ALL</button>'+
+ timeframes.map(t=>'<button class="tf '+(selectedTF===t?"active":"")+'" onclick="selectTF(\''+t+'\')">'+t+'</button>').join("");
+}
+function selectTF(tf){selectedTF=tf;render();}
+function data(){
+ let d=(mode==="classic"?classic:fib).filter(x=>selectedTF==="ALL"||x.tf===selectedTF);
+ return d.sort((a,b)=>b.score-a.score);
+}
+function render(){
+ renderTFs();
+ const list=data();
+ const best=list[0];
+ document.getElementById("bestTf").textContent=best?best.tf:"—";
+ document.getElementById("best").innerHTML=best?`<div class="best">
+<div class="row"><strong>🏆 ${best.pair} • ${best.dir}</strong><span class="tag ${best.dir==="BUY"?"buy":"sell"}">${best.score}/100</span></div>
+<div class="muted">${best.setup} • ${best.tf}</div>
+<div class="why">${best.reason}</div>
+<div class="small" style="margin-top:8px">Entry ${best.entry} • SL ${best.sl} • TP ${best.tp}</div>
+<button class="btn dark" style="margin-top:10px" onclick="alertSignal('${best.pair}','${best.dir}')">🔔 Alert me for this setup</button>
+</div>`:"<div class='signal'><div class='small'>No demo setup is currently listed for this timeframe.</div></div>";
+ document.getElementById("signals").innerHTML=list.map(s=>`<div class="signal">
+<div class="row"><span class="pair">${s.pair}</span><span class="tag ${s.dir==="BUY"?"buy":"sell"}">${s.dir}</span></div>
+<div class="muted">${s.setup} • ${s.tf}</div><div class="ready">Setup score: ${s.score}/100</div>
+<div class="meter"><i style="width:${s.score}%"></i></div>
+<div class="small" style="margin-top:9px">Entry ${s.entry} • SL ${s.sl} • TP ${s.tp}</div>
+<div class="small" style="margin-top:6px">${s.reason}</div>
+<button class="btn dark" style="margin-top:10px" onclick="alertSignal('${s.pair}','${s.dir}')">🔔 Set alert</button>
+</div>`).join("");
+ document.getElementById("rules").innerHTML=mode==="classic"?`
+<div class="signal"><b>1. Breakout + Retest</b><p class="small">Break and close beyond structure → retest → rejection/confirmation → entry.</p></div>
+<div class="signal"><b>2. Liquidity Sweep + Reversal</b><p class="small">Obvious high/low swept → rejection → confirmation → entry toward opposing liquidity.</p></div>
+<div class="signal"><b>3. Trend Pullback + Structure</b><p class="small">Strong trend → pullback to meaningful structure → confirmation → continuation.</p></div>`
+:
+`<div class="fib"><b>📐 Fibonacci Confluence Strategy</b>
+<p class="small">Use a clear swing high/low, then look for a retracement into the Fibonacci “golden zone,” especially 50%–61.8%, with structure and price-action confirmation. Avoid entering from the Fibonacci level alone.</p>
+<div class="levels"><div class="level"><b>38.2%</b><span>shallow pullback</span></div><div class="level"><b>50%</b><span>mid retracement</span></div><div class="level"><b>61.8%</b><span>golden zone</span></div></div>
+</div>
+<div class="signal"><b>Confirmation stack</b><p class="small">Trend/structure + Fib level + rejection/engulfing or market-structure confirmation + sensible stop placement + minimum 1:2 R:R.</p></div>`;
+}
+
+/* GPT Batsho v7 — free-first live market connector */
+const gbLivePairsDefault=["EUR/USD","GBP/USD","USD/JPY","GBP/JPY","AUD/USD","XAU/USD"];
+let gbLivePairs=JSON.parse(localStorage.getItem("gbLivePairs")||"null")||gbLivePairsDefault;
+let gbLiveTimer=null, gbLiveConnected=false;
+
+function openGbLive(){
+ document.getElementById("gbLive").style.display="flex";
+ document.getElementById("gbApiKey").value=localStorage.getItem("gbApiKey")||"";
+ renderGbLivePairs();
+ updateGbLiveStatus();
+}
+function closeGbLive(){document.getElementById("gbLive").style.display="none"}
+function renderGbLivePairs(){
+ const box=document.getElementById("gbLivePairs");
+ box.innerHTML=gbLivePairsDefault.map(p=>`<button class="${gbLivePairs.includes(p)?"active":""}" onclick="toggleGbPair('${p}',this)">${p}</button>`).join("");
+}
+function toggleGbPair(p,el){
+ if(gbLivePairs.includes(p)){gbLivePairs=gbLivePairs.filter(x=>x!==p);el.classList.remove("active")}
+ else {gbLivePairs.push(p);el.classList.add("active")}
+ localStorage.setItem("gbLivePairs",JSON.stringify(gbLivePairs));
+}
+function updateGbLiveStatus(msg){
+ const key=localStorage.getItem("gbApiKey");
+ document.getElementById("gbLiveStatusText").textContent=msg||(
+   key ? (gbLiveConnected?"Live connection active — scanning selected pairs.":"API key saved — connecting when live scan starts.")
+       :"Not connected — demo data is active."
+ );
+ document.getElementById("gbLiveDot").classList.toggle("on",!!(key&&gbLiveConnected));
+}
+function saveGbLive(){
+ const key=document.getElementById("gbApiKey").value.trim();
+ if(!key){toast("Enter a market-data API key");return}
+ if(!gbLivePairs.length){toast("Select at least one pair");return}
+ localStorage.setItem("gbApiKey",key);
+ localStorage.setItem("gbLivePairs",JSON.stringify(gbLivePairs));
+ gbLiveConnected=false;
+ closeGbLive();
+ toast("📡 Live connection saved");
+ startGbLivePolling();
+}
+function disconnectGbLive(){
+ localStorage.removeItem("gbApiKey");
+ gbLiveConnected=false;
+ if(gbLiveTimer)clearInterval(gbLiveTimer);
+ gbLiveTimer=null;
+ closeGbLive(); updateGbLiveStatus();
+ toast("Demo mode restored");
+}
+function gbNormalizeSymbol(p){return p.replace("/","/")}
+async function gbFetchSeries(pair,interval="1h"){
+ const key=localStorage.getItem("gbApiKey");
+ if(!key) return null;
+ const url=`https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(gbNormalizeSymbol(pair))}&interval=${encodeURIComponent(interval)}&outputsize=80&apikey=${encodeURIComponent(key)}`;
+ const r=await fetch(url);
+ const j=await r.json();
+ if(j.status==="error" || !j.values) throw new Error(j.message||"Market data unavailable");
+ return j.values.reverse().map(x=>({time:x.datetime,open:+x.open,high:+x.high,low:+x.low,close:+x.close}));
+}
+function gbEMA(a,n){
+ if(a.length<n)return null;
+ let k=2/(n+1), e=a.slice(0,n).reduce((x,y)=>x+y,0)/n;
+ for(let i=n;i<a.length;i++)e=a[i]*k+e*(1-k);
+ return e;
+}
+function gbATR(c,n=14){
+ if(c.length<n+1)return null;
+ let tr=[];
+ for(let i=1;i<c.length;i++)tr.push(Math.max(c[i].high-c[i].low,Math.abs(c[i].high-c[i-1].close),Math.abs(c[i].low-c[i-1].close)));
+ return tr.slice(-n).reduce((a,b)=>a+b,0)/n;
+}
+function gbDetect(c,pair,tf){
+ if(!c||c.length<30)return null;
+ const closes=c.map(x=>x.close), last=c[c.length-1], prev=c[c.length-2];
+ const hh=Math.max(...c.slice(-21,-1).map(x=>x.high));
+ const ll=Math.min(...c.slice(-21,-1).map(x=>x.low));
+ const atr=gbATR(c)||((hh-ll)/20);
+ const ema20=gbEMA(closes,20), ema50=gbEMA(closes,50);
+ let dir=null, setup="", score=60, reason="";
+ if(prev.close<=hh && last.close>hh){
+   dir="BUY"; setup="Breakout + Retest"; score=86; reason="Fresh structure breakout detected.";
+ } else if(prev.close>=ll && last.close<ll){
+   dir="SELL"; setup="Breakout + Retest"; score=86; reason="Fresh structure breakdown detected.";
+ } else if(last.low<ll*1.00001 && last.close>last.open && last.close>(ll+(hh-ll)*0.35)){
+   dir="BUY"; setup="Liquidity Sweep + Reversal"; score=82; reason="Recent low liquidity sweep with bullish rejection.";
+ } else if(last.high>hh*0.99999 && last.close<last.open && last.close<(ll+(hh-ll)*0.65)){
+   dir="SELL"; setup="Liquidity Sweep + Reversal"; score=82; reason="Recent high liquidity sweep with bearish rejection.";
+ } else if(ema20&&ema50&&ema20>ema50&&last.close>ema20){
+   dir="BUY"; setup="Trend Pullback + Structure"; score=78; reason="Bullish trend alignment with price above EMA20.";
+ } else if(ema20&&ema50&&ema20<ema50&&last.close<ema20){
+   dir="SELL"; setup="Trend Pullback + Structure"; score=78; reason="Bearish trend alignment with price below EMA20.";
+ }
+ if(!dir)return null;
+ const entry=last.close;
+ const sl=dir==="BUY"?entry-1.2*atr:entry+1.2*atr;
+ const tp=dir==="BUY"?entry+2.4*atr:entry-2.4*atr;
+ return {pair:pair.replace("/",""),dir,setup,tf,score,entry:entry.toFixed(pair.includes("XAU")?2:5),sl:sl.toFixed(pair.includes("XAU")?2:5),tp:tp.toFixed(pair.includes("XAU")?2:5),reason:reason+" Live candle data."};
+}
+async function runGbLiveScan(){
+ const key=localStorage.getItem("gbApiKey");
+ if(!key){gbLiveConnected=false;return}
+ try{
+   const intervalMap={"1m":"1min","5m":"5min","15m":"15min","30m":"30min","1H":"1h","4H":"4h","1D":"1day","1W":"1week","1M":"1month"};
+   const tf=selectedTF==="ALL"?"1H":selectedTF;
+   const interval=intervalMap[tf]||"1h";
+   const out=[];
+   for(const p of gbLivePairs){
+     try{
+       const candles=await gbFetchSeries(p,interval);
+       const sig=gbDetect(candles,p,tf);
+       if(sig)out.push(sig);
+     }catch(e){console.warn("GPT Batsho live:",p,e.message)}
+   }
+   if(out.length){
+     const live=out.sort((a,b)=>b.score-a.score);
+     window.__gbLiveData=live;
+     gbLiveConnected=true;
+     updateGbLiveStatus(`Live data active — ${live.length} setup(s) found on ${tf}.`);
+     render();
+     if(typeof renderScanner==="function" && document.getElementById("scannerView")?.classList.contains("active")) renderScanner();
+   }else{
+     gbLiveConnected=true;
+     updateGbLiveStatus(`Live data connected — no qualifying setup found on ${tf}.`);
+     window.__gbLiveData=[];
+     render();
+   }
+ }catch(e){
+   gbLiveConnected=false;
+   updateGbLiveStatus("Live data error — using demo data. Check API key/limits.");
+ }
+}
+function startGbLivePolling(){
+ if(gbLiveTimer)clearInterval(gbLiveTimer);
+ runGbLiveScan();
+ gbLiveTimer=setInterval(runGbLiveScan,60000);
+}
+const _gbOriginalData=data;
+data=function(){
+ const key=localStorage.getItem("gbApiKey");
+ if(key && Array.isArray(window.__gbLiveData) && window.__gbLiveData.length) {
+   let d=window.__gbLiveData.filter(x=>selectedTF==="ALL"||x.tf===selectedTF);
+   return d.sort((a,b)=>b.score-a.score);
+ }
+ return _gbOriginalData();
+};
+window.addEventListener("load",()=>{ if(localStorage.getItem("gbApiKey")) startGbLivePolling(); });
+
+function toast(t){let x=document.getElementById("toast");x.textContent=t;x.style.display="block";setTimeout(()=>x.style.display="none",2400)}
+function alertSignal(pair,dir){
+ count++;document.getElementById("alerts").textContent=count;toast("🔔 "+pair+" "+dir+" setup ready");
+ if("Notification" in window && Notification.permission==="granted") new Notification("GPT Batsho",{body:pair+" "+dir+" setup is ready for review."});
+}
+function enableAlerts(){
+ if("Notification" in window) Notification.requestPermission().then(p=>toast(p==="granted"?"🔔 Alerts enabled":"Alerts permission not granted"));
+ else toast("Use a browser that supports notifications.");
+}
+function scan(){
+ toast("🔎 Scanning all timeframes...");
+ setTimeout(()=>{
+   selectedTF="ALL"; render();
+   const best=data()[0];
+   toast(best?"🐐 Best setup: "+best.pair+" "+best.tf+" ("+best.score+"/100)":"No setup found");
+ },700);
+}
+render();
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+
+<div id="gbSettings" onclick="if(event.target===this)closeGbSettings()">
+ <div class="gb-panel">
+  <div class="gb-panel-head">
+   <div class="gb-panel-title">⚙️ Settings</div>
+   <button class="gb-close" onclick="closeGbSettings()">✕</button>
+  </div>
+  <div class="gb-section">
+   <div class="gb-label">Dashboard theme</div>
+   <div class="gb-row">
+    <button id="gbDarkBtn" class="gb-choice" onclick="setGbTheme('dark')">🌙 Dark</button>
+    <button id="gbLightBtn" class="gb-choice" onclick="setGbTheme('light')">☀️ White</button>
+   </div>
+  </div>
+  <div class="gb-section">
+   <div class="gb-label">Accent colour</div>
+   <div class="gb-colors">
+    <button class="gb-color" style="--c:#ffffff" title="White" onclick="setGbAccent('#ffffff','#000000',this)"></button>
+    <button class="gb-color" style="--c:#22c55e" title="Green" onclick="setGbAccent('#22c55e','#000000',this)"></button>
+    <button class="gb-color" style="--c:#3b82f6" title="Blue" onclick="setGbAccent('#3b82f6','#ffffff',this)"></button>
+    <button class="gb-color" style="--c:#a855f7" title="Purple" onclick="setGbAccent('#a855f7','#ffffff',this)"></button>
+    <button class="gb-color" style="--c:#f59e0b" title="Gold" onclick="setGbAccent('#f59e0b','#000000',this)"></button>
+    <button class="gb-color" style="--c:#ef4444" title="Red" onclick="setGbAccent('#ef4444','#ffffff',this)"></button>
+   </div>
+  </div>
+  <button class="gb-reset" onclick="openGbLive()">📡 Live market connection</button><button class="gb-reset" onclick="resetGbTheme()">Reset appearance</button>
+ </div>
+</div>
+
+<script>
+function showView(view){
+  const views = {home:'homeView', scanner:'scannerView', journal:'journalView', stats:'statsView'};
+  Object.values(views).forEach(id => document.getElementById(id).classList.remove('active'));
+  if(view !== 'settings') document.getElementById(views[view]).classList.add('active');
+
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  const nav = {home:'navHome', scanner:'navScanner', journal:'navJournal', stats:'navStats'};
+  if(nav[view]) document.getElementById(nav[view]).classList.add('active');
+
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(view==='scanner') renderScanner();
+  if(view==='journal') renderJournal();
+  if(view==='stats') renderStats();
+}
+
+function renderScanner(){
+  const list=data();
+  document.getElementById('scannerResults').innerHTML = list.length ? list.map((s,i)=>`
+    <div class="signal">
+      <div class="row"><strong>${i===0?'🏆 ':''}${s.pair} • ${s.dir}</strong><span class="tag ${s.dir==='BUY'?'buy':'sell'}">${s.score}/100</span></div>
+      <div class="muted">${s.setup} • ${s.tf}</div>
+      <div class="ready">${i===0?'BEST MATCH':'Rank '+(i+1)}</div>
+      <div class="meter"><i style="width:${s.score}%"></i></div>
+      <div class="small" style="margin-top:8px">Entry ${s.entry} • SL ${s.sl} • TP ${s.tp}</div>
+      <button class="btn dark" style="margin-top:10px" onclick="alertSignal('${s.pair}','${s.dir}')">🔔 Set alert</button>
+    </div>`).join('') : '<div class="empty">No demo setup is listed for this timeframe.</div>';
+}
+
+function getJournal(){
+  try{return JSON.parse(localStorage.getItem('gbJournal')||'[]')}catch(e){return []}
+}
+function saveJournal(arr){localStorage.setItem('gbJournal',JSON.stringify(arr))}
+function addJournal(){
+  const pair=document.getElementById('jPair').value.trim().toUpperCase();
+  const dir=document.getElementById('jDirection').value;
+  const entry=document.getElementById('jEntry').value.trim();
+  const result=document.getElementById('jResult').value.trim();
+  const note=document.getElementById('jNote').value.trim();
+  if(!pair){toast('Enter a pair first');return}
+  const arr=getJournal();
+  arr.unshift({pair,dir,entry,result,note,date:new Date().toLocaleString()});
+  saveJournal(arr);
+  ['jPair','jEntry','jResult','jNote'].forEach(id=>document.getElementById(id).value='');
+  renderJournal(); renderStats(); toast('📓 Journal entry saved');
+}
+function deleteJournal(i){
+  const arr=getJournal(); arr.splice(i,1); saveJournal(arr); renderJournal(); renderStats(); toast('Journal entry removed');
+}
+function renderJournal(){
+  const arr=getJournal();
+  document.getElementById('journalList').innerHTML = arr.length ? arr.map((x,i)=>`
+    <div class="journal-item">
+      <div class="row"><strong>${x.pair} • ${x.dir}</strong><span class="tag">${x.result||'OPEN'}</span></div>
+      <div class="small">Entry: ${x.entry||'—'} • ${x.date}</div>
+      <div class="small" style="margin-top:7px">${x.note||'No notes added.'}</div>
+      <button class="btn dark" style="margin-top:9px" onclick="deleteJournal(${i})">Remove</button>
+    </div>`).join('') : '<div class="empty">No journal entries yet. Save your first setup above.</div>';
+}
+function renderStats(){
+  const arr=getJournal();
+  const wins=arr.filter(x=>/^\+/.test((x.result||'').trim())).length;
+  const losses=arr.filter(x=>/^-/.test((x.result||'').trim())).length;
+  const be=arr.filter(x=>/^(BE|0)/i.test((x.result||'').trim())).length;
+  const closed=wins+losses+be;
+  const rate=closed?Math.round(wins/closed*100):0;
+  document.getElementById('statsContent').innerHTML=`
+    <div class="stat-grid">
+      <div class="stat-box"><div class="muted">TOTAL</div><div class="value">${arr.length}</div></div>
+      <div class="stat-box"><div class="muted">WIN RATE</div><div class="value">${rate}%</div></div>
+      <div class="stat-box"><div class="muted">WINS</div><div class="value">${wins}</div></div>
+      <div class="stat-box"><div class="muted">LOSSES</div><div class="value">${losses}</div></div>
+    </div>
+    <div class="stat-box" style="margin-top:10px"><div class="muted">BREAK-EVEN</div><div class="value">${be}</div><div class="small">Stats are calculated from your journal labels and stay on this device.</div></div>`;
+}
+</script>
+
+<script>
+function openGbSettings(){document.getElementById('gbSettings').style.display='flex'}
+function closeGbSettings(){document.getElementById('gbSettings').style.display='none'}
+function setGbTheme(mode){
+ document.body.classList.toggle('gb-light',mode==='light');
+ localStorage.setItem('gbTheme',mode);
+ document.getElementById('gbDarkBtn').classList.toggle('active',mode==='dark');
+ document.getElementById('gbLightBtn').classList.toggle('active',mode==='light');
+}
+function setGbAccent(color,text,el){
+ document.documentElement.style.setProperty('--gb-accent',color);
+ document.documentElement.style.setProperty('--gb-accentText',text);
+ localStorage.setItem('gbAccent',color);
+ localStorage.setItem('gbAccentText',text);
+ document.querySelectorAll('.gb-color').forEach(x=>x.classList.remove('active'));
+ if(el)el.classList.add('active');
+}
+function resetGbTheme(){
+ setGbTheme('dark');
+ setGbAccent('#ffffff','#000000',document.querySelector('.gb-color'));
+}
+function loadGbTheme(){
+ const mode=localStorage.getItem('gbTheme')||'dark';
+ const color=localStorage.getItem('gbAccent')||'#ffffff';
+ const text=localStorage.getItem('gbAccentText')||'#000000';
+ setGbTheme(mode);
+ setGbAccent(color,text,[...document.querySelectorAll('.gb-color')].find(x=>x.title.toLowerCase()==='white'));
+ document.querySelectorAll('.gb-color').forEach(x=>{
+   const c=getComputedStyle(x).getPropertyValue('--c').trim();
+   x.classList.toggle('active',c.toLowerCase()===color.toLowerCase());
+ });
+}
+window.addEventListener('DOMContentLoaded',loadGbTheme);
+</script>
+
+<div id="gbLive" onclick="if(event.target===this)closeGbLive()">
+ <div class="gb-live-panel">
+  <div class="gb-live-head">
+   <div class="gb-live-title">📡 Live Market Connection</div>
+   <button class="gb-close" onclick="closeGbLive()">✕</button>
+  </div>
+  <div class="small">Free-first mode: connect your own free/test market-data API key. The key stays in this browser and is not uploaded by GPT Batsho.</div>
+  <div class="gb-live-status" id="gbLiveStatus"><span class="gb-live-dot" id="gbLiveDot"></span><span id="gbLiveStatusText">Not connected — demo data is active.</span></div>
+  <label class="gb-label">Provider</label>
+  <input class="gb-input" value="Twelve Data" disabled>
+  <label class="gb-label">Twelve Data API key</label>
+  <input id="gbApiKey" class="gb-input" type="password" placeholder="Paste your API key here">
+  <label class="gb-label">Pairs to scan</label>
+  <div class="gb-live-pairs" id="gbLivePairs"></div>
+  <div class="gb-live-row">
+   <button class="btn dark" onclick="saveGbLive()">Save & connect</button>
+   <button class="btn dark" onclick="disconnectGbLive()">Use demo</button>
+  </div>
+  <p class="gb-live-note">Important: this zero-cost beta uses the browser directly. That is fine for your personal testing, but do not publish or share this version with your API key inside it. For a public app, we should move the key behind a backend before launch.</p>
+  <p class="gb-live-note">Free data providers have limits and may not support every pair/timeframe continuously. GPT Batsho will fall back to demo data when live data is unavailable.</p>
+ </div>
+</div>
+
+<div id="gbTrialExpired" class="gb-trial-expired">
+ <div class="gb-trial-card">
+  <div style="font-size:42px">🐐</div>
+  <h2>Free trial ended</h2>
+  <p>Your 7-day free trial has ended. To continue using GPT Batsho, get an access code.</p>
+  <button class="btn dark" onclick="showGbAccessCode()">🔑 Get access code</button>
+  <div id="gbAccessCodeBox" style="display:none;margin-top:16px;text-align:left">
+   <label class="gb-label">Access code</label>
+   <input id="gbAccessCode" class="gb-input" type="password" inputmode="numeric" placeholder="Enter your access code">
+   <button class="btn dark" onclick="unlockGbAccess()">Unlock GPT Batsho</button>
+   <p class="gb-live-note">Need a code? Contact GPT Batsho on WhatsApp.</p>
+   <button class="btn dark" onclick="contactGbAccess()">WhatsApp</button>
+  </div>
+ </div>
+</div>
+</body>
+</html>
